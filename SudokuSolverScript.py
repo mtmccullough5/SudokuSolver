@@ -2,6 +2,7 @@
 
 def SudokuSolver(PuzzleState):
     def TruthMaker(ArrayStates, Number):
+        ## Setup
         TruthMatrix = []
         for x in range(9):
             TruthMatrix.append(
@@ -14,13 +15,13 @@ def SudokuSolver(PuzzleState):
         ## Horizontal Lines
         for x in range(9):
             if Number in HorzState[x]: 
-                TruthMatrix[x] = [True, True, True, True, True, True, True, True, True]
+                TruthMatrix[x] = [False, False, False, False, False, False, False, False, False]
         
         ## Check Vertical Line
         for y in range(9):
             if Number in VertState[y]:
                 for x in range(9):
-                    TruthMatrix[x][y] = True
+                    TruthMatrix[x][y] = False
 
         ## Check Blocks
         for j in range(9):
