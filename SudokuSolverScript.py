@@ -1,90 +1,59 @@
 #Sudoku Solver
 
-
 def SudokuSolver(PuzzleState):
-    # Main Solver
-##    while PuzzleSum < 405
-##        for number in Numbers
-##            PuzzleState = CheckNum(self)
-    
     def TruthMaker(ArrayStates, Number):
-        TruthMatrix = [
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True],
-            [True, True, True, True, True, True, True, True, True]]
+        TruthMatrix = []
+        for x in range(9):
+            TruthMatrix.append(
+                [True, True, True, True, True, True, True, True, True])
         PuzzleState = ArrayStates[0]
         HorzState = ArrayStates[0]
         VertState = ArrayStates[1]
         BlockState = ArrayStates[2]
         
-        ## Check Vertival and Horizontal Lines
+        ## Horizontal Lines
+        for x in range(9):
+            if Number in HorzState[x]: 
+                TruthMatrix[x] = [True, True, True, True, True, True, True, True, True]
+        
+        ## Check Vertical Line
         for y in range(9):
-            for x in range(9):
-                if Number in HorzState[x] or Number in VertState[y]:
-                    TruthMatrix[x][y] = False
+            if Number in VertState[y]:
+                for x in range(9):
+                    TruthMatrix[x][y] = True
 
-        ## Check Blocks           
-        for x in range(3):
-            for y in range(3):
-                if Number in BlockState[0]:
-                    TruthMatrix[x][y] = False
-        for x in range(3,6):
-            for y in range(3):
-                if Number in BlockState[1]:
-                    TruthMatrix[x][y] = False
-        for x in range(6,9):
-            for y in range(3):
-                if Number in BlockState[2]:
-                    TruthMatrix[x][y] = False
-        for x in range(3):
-            for y in range(3,6):
-                if Number in BlockState[3]:
-                    TruthMatrix[x][y] = False
-        for x in range(3,6):
-            for y in range(3,6):
-                if Number in BlockState[4]:
-                    TruthMatrix[x][y] = False
-        for x in range(6,9):
-            for y in range(3,6):
-                if Number in BlockState[5]:
-                    TruthMatrix[x][y] = False
-        for x in range(3):
-            for y in range(6,9):
-                if Number in BlockState[6]:
-                    TruthMatrix[x][y] = False
-        for x in range(3,6):
-            for y in range(6,9):
-                if Number in BlockState[7]:
-                    TruthMatrix[x][y] = False
-        for x in range(6,9):
-            for y in range(6,9):
-                if Number in BlockState[8]:
-                    TruthMatrix[x][y] = False
+        ## Check Blocks
+        for j in range(9):
+            if Number in BlockState[j]:
+                SuperRow = (j-j%3)/3
+                SuperCol = j%3
+                x1 = int(SuperRow*3)
+                x2 = int(SuperRow*3+3)
+                y1 = int(SuperCol*3)
+                y2 = int(SuperCol*3+3)
+                for x in range(x1,x2):
+                    for y in range(y1,y2):
+                        TruthMatrix[x][y] = False
 
         ## Check if a number is already there
         for x in range(9):
             for y in range(9):
-                if PuzzleState[x][y] > 0:
+                if PuzzleState[x][y] != 0:
                     TruthMatrix[x][y] = False
+
         return TruthMatrix
-    
+
     def Indexer(PuzzleState):
-        # PuzzleState is identical to Horizontal Arrays
+        ## PuzzleState is identical to Horizontal Arrays
         HorzState = PuzzleState
-        # Vertical State
+        ## Vertical State
         VertState = []
         for x in range(9):
             VertArr = []
             for y in range(9):
                 VertArr.append(PuzzleState[y][x])
             VertState.append(VertArr)
-        # Block State
+        ## Block State
         b1 = []
         b2 = []
         b3 = []
@@ -116,49 +85,100 @@ def SudokuSolver(PuzzleState):
             for y in range(6,9):
                 b9.append(PuzzleState[x][y])
         BlockState = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
-        return [HorzState,VertState,BlockState]
+        IndexedArrays = [HorzState,VertState,BlockState]
+        return IndexedArrays
 
     def MatrixSum(PuzzleState):
-        PuzzleSum = 0
+        Sum = 0
+        PuzzleSum = True
         for arr in PuzzleState:
-            PuzzleSum += sum(arr)
+            for index in arr:
+                if isinstance(index,int):
+                    Sum += index
+        if Sum == 405:
+            PuzzleSum = False
         return PuzzleSum
 
-    def FindArray(PuzzleState, TruthMat):
+    def FindIndex(TruthMat):
         # Create Truth Arrays
         TruthArrays = Indexer(TruthMat)
         HorzState = TruthArrays[0]
         VertState = TruthArrays[1]
         BlockState = TruthArrays[2]
-        
+        index = [ 10, 10]
         # Check arrays
         for x in range(9):
             if HorzState[x].count(True) == 1:
-                return HorzReplace(PuzzleState,x)
+                index = [ x, HorzState[x].index(True)]
+                print("hit horz")
+                break
             if VertState[x].count(True) == 1:
-                return [x,"vert"]
+                index = [ VertState[x].index(True), x]
+                print("hit vert")
+                break
             if BlockState[x].count(True) == 1:
-                return [x,"block"]
-        
-    def HorzReplace(PuzzleState, x):
-        # This array is equal to the PuzzleState
+                SuperRow = (x-x%3)/3
+                SuperCol = x%3
+                K = BlockState[x].index(True)
+                BlockRow = (K-K%3)/3
+                BlockCol = K%3
+                index = [ int(3*SuperRow + BlockRow), int(3*SuperCol + BlockCol)]
+                print("hit block")
+                break
+        return index
+
+    def Replacer(PuzzleState, Index, TestNumber):
+        PuzzleState[Index[0]][Index[1]] = TestNumber
         return PuzzleState
 
+    PuzzleSum = True
+    loopindex = 0
+    while PuzzleSum:
+        for x in range(1,10):
+            ArrayStates = Indexer(PuzzleState)
+            TruthMat = TruthMaker(ArrayStates, x)
+            Index = FindIndex(TruthMat)
+            if Index != [10,10]:
+                print(x)
+                print(Index)
+                print("Puzzle")
+                print(PuzzleState[0])
+                print(PuzzleState[1])
+                print(PuzzleState[2])
+                print(PuzzleState[3])
+                print(PuzzleState[4])
+                print(PuzzleState[5])
+                print(PuzzleState[6])
+                print(PuzzleState[7])
+                print(PuzzleState[8])
+                print("Truth Matrix in solver")
+                print(TruthMat[0])
+                print(TruthMat[1])
+                print(TruthMat[2])
+                print(TruthMat[3])
+                print(TruthMat[4])
+                print(TruthMat[5])
+                print(TruthMat[6])
+                print(TruthMat[7])
+                print(TruthMat[8])
+                PuzzleState = Replacer(PuzzleState, Index, x)
+                print("New Puzzle")
+                print(PuzzleState[0])
+                print(PuzzleState[1])
+                print(PuzzleState[2])
+                print(PuzzleState[3])
+                print(PuzzleState[4])
+                print(PuzzleState[5])
+                print(PuzzleState[6])
+                print(PuzzleState[7])
+                print(PuzzleState[8])
+                Index = [10,10]
+                break
+            PuzzleSum = MatrixSum(PuzzleState)
+        loopindex+=1
 
-    def VertReplace(PuzzleState, x):
-        # This array I need to switch Indices
-        return PuzzleState
-
-    def BlockReplace(PuzzleState, x):
-        # Special Indexing requirements
-        return PuzzleState
+    return PuzzleState
     
-    ArrayStates = Indexer(PuzzleState)
-    PuzzleSum = MatrixSum(PuzzleState)
-    TruthMat = TruthMaker(ArrayStates, 6)
-    
-
-
 
 ############################################################
 GivenPuzzle = [
@@ -172,4 +192,15 @@ GivenPuzzle = [
     [0,6,1,0,0,0,0,0,0],
     [0,2,4,6,0,3,0,0,0]
     ]
-PuzzleSolution = SudokuSolver(GivenPuzzle)
+
+PuzzleState = SudokuSolver(GivenPuzzle)
+print("Done")
+print(PuzzleState[0])
+print(PuzzleState[1])
+print(PuzzleState[2])
+print(PuzzleState[3])
+print(PuzzleState[4])
+print(PuzzleState[5])
+print(PuzzleState[6])
+print(PuzzleState[7])
+print(PuzzleState[8])
